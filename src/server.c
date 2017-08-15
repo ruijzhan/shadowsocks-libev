@@ -332,15 +332,19 @@ setnonblocking(int fd)
 int
 create_and_bind(const char *host, const char *port, int mptcp)
 {
+#ifdef LOG1
+    LOGI("create_and_bind: host=%s, port=%s, mptcp=%d", host, port, mptcp);
+#endif
     struct addrinfo hints;
     struct addrinfo *result, *rp, *ipv4v6bindall;
     int s, listen_sock;
-
+//ruijzhan place to change
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family   = AF_UNSPEC;               /* Return IPv4 and IPv6 choices */
     hints.ai_socktype = SOCK_STREAM;             /* We want a TCP socket */
     hints.ai_flags    = AI_PASSIVE | AI_ADDRCONFIG; /* For wildcard IP address */
-    hints.ai_protocol = IPPROTO_TCP;
+    //hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_protocol = IPPROTO_SCTP;
 
     result = NULL;
 
@@ -408,19 +412,19 @@ create_and_bind(const char *host, const char *port, int mptcp)
             }
         }
 
-        if (mptcp == 1) {
-            int i = 0;
-            while((mptcp = mptcp_enabled_values[i]) > 0) {
-                int err = setsockopt(listen_sock, IPPROTO_TCP, mptcp, &opt, sizeof(opt));
-                if (err != -1) {
-                    break;
-                }
-                i++;
-            }
-            if (mptcp == 0) {
-                ERROR("failed to enable multipath TCP");
-            }
-        }
+//        if (mptcp == 1) {
+//            int i = 0;
+//            while((mptcp = mptcp_enabled_values[i]) > 0) {
+//                int err = setsockopt(listen_sock, IPPROTO_TCP, mptcp, &opt, sizeof(opt));
+//                if (err != -1) {
+//                    break;
+//                }
+//                i++;
+//            }
+//            if (mptcp == 0) {
+//                ERROR("failed to enable multipath TCP");
+//            }
+//        }
 
         s = bind(listen_sock, rp->ai_addr, rp->ai_addrlen);
         if (s == 0) {

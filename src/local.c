@@ -150,6 +150,9 @@ setnonblocking(int fd)
 int
 create_and_bind(const char *addr, const char *port)
 {
+#ifdef LOG1
+    LOGI("create_and_bind: addr=%s, port=%s", addr, port);
+#endif
     struct addrinfo hints;
     struct addrinfo *result, *rp;
     int s, listen_sock;
@@ -210,6 +213,9 @@ create_and_bind(const char *addr, const char *port)
 int
 launch_or_create(const char *addr, const char *port)
 {
+#ifdef LOG1
+    LOGI("launch_or_create: addr=%s, port=%s", addr, port);
+#endif
     int *fds;
     size_t cnt;
     int error = launch_activate_socket("Listeners", &fds, &cnt);
@@ -1143,6 +1149,10 @@ static remote_t *
 create_remote(listen_ctx_t *listener,
               struct sockaddr *addr)
 {
+#ifdef LOG1
+    LOGI("create_remote");
+#endif
+
     struct sockaddr *remote_addr;
 
     int index = rand() % listener->remote_num;
@@ -1152,7 +1162,8 @@ create_remote(listen_ctx_t *listener,
         remote_addr = addr;
     }
 
-    int remotefd = socket(remote_addr->sa_family, SOCK_STREAM, IPPROTO_TCP);
+    //ruijzhan: place to change
+    int remotefd = socket(remote_addr->sa_family, SOCK_STREAM, IPPROTO_SCTP);
 
     if (remotefd == -1) {
         ERROR("socket");
@@ -1160,29 +1171,31 @@ create_remote(listen_ctx_t *listener,
     }
 
     int opt = 1;
-    setsockopt(remotefd, SOL_TCP, TCP_NODELAY, &opt, sizeof(opt));
-#ifdef SO_NOSIGPIPE
-    setsockopt(remotefd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(opt));
-#endif
+    //ruijzhan: place to change
+    setsockopt(remotefd, IPPROTO_SCTP, SCTP_NODELAY, &opt, sizeof(opt));
+//#ifdef SO_NOSIGPIPE
+//    setsockopt(remotefd, SOL_SOCKET, SO_NOSIGPIPE, &opt, sizeof(opt));
+//#endif
 
-    if (listener->mptcp > 1) {
-        int err = setsockopt(remotefd, SOL_TCP, listener->mptcp, &opt, sizeof(opt));
-        if (err == -1) {
-            ERROR("failed to enable multipath TCP");
-        }
-    } else if (listener->mptcp == 1) {
-        int i = 0;
-        while((listener->mptcp = mptcp_enabled_values[i]) > 0) {
-            int err = setsockopt(remotefd, SOL_TCP, listener->mptcp, &opt, sizeof(opt));
-            if (err != -1) {
-                break;
-            }
-            i++;
-        }
-        if (listener->mptcp == 0) {
-            ERROR("failed to enable multipath TCP");
-        }
-    }
+    //ruijzhan: place to change
+//    if (listener->mptcp > 1) {
+//        int err = setsockopt(remotefd, SOL_TCP, listener->mptcp, &opt, sizeof(opt));
+//        if (err == -1) {
+//            ERROR("failed to enable multipath TCP");
+//        }
+//    } else if (listener->mptcp == 1) {
+//        int i = 0;
+//        while((listener->mptcp = mptcp_enabled_values[i]) > 0) {
+//            int err = setsockopt(remotefd, SOL_TCP, listener->mptcp, &opt, sizeof(opt));
+//            if (err != -1) {
+//                break;
+//            }
+//            i++;
+//        }
+//        if (listener->mptcp == 0) {
+//            ERROR("failed to enable multipath TCP");
+//        }
+//    }
 
     // Setup
     setnonblocking(remotefd);

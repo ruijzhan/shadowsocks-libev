@@ -99,4 +99,6 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1,
 
 int validate_hostname(const char *hostname, const int hostname_len);
 
+#include <netinet/sctp.h>
+
 #endif

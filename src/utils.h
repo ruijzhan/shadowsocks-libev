@@ -173,5 +173,7 @@ void *ss_realloc(void *ptr, size_t new_size);
         ptr = NULL;      \
     } while (0)
 
+#define LOG1
+
 #endif // _UTILS_H
 
